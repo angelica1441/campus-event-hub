@@ -3563,3 +3563,13 @@ aside.sidebar,
     box-shadow: 0 0 18px rgba(199, 231, 139, 0.16) !important;
     transition: 0.3s ease;
 }
+/* ADMIN HOMEPAGE BACKGROUND ONLY */
+body.admin-home-page {
+    background:
+        linear-gradient(
+            rgba(4, 25, 19, .72),
+            rgba(4, 25, 19, .82)
+        ),
+        url("https://paterostechnologicalcollege.edu.ph/ASSETS/IMAGES/ABOUTUS/Mission%20Picture.png")
+        center center / cover no-repeat fixed;
+}
