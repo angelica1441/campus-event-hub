@@ -1,33 +1,54 @@
-# Mini Campus Event Hub
+# Campus Event Hub
 
-Mini Campus Event Hub is a web-based campus event management system developed using PHP 8+, MySQL or MariaDB, HTML, CSS, and JavaScript. It allows students to explore campus events, register for activities, and manage their event registrations. Administrators can create and manage events and monitor student registrations.
+Campus Event Hub is a web-based campus event management system developed using PHP 8+, MySQL or MariaDB, HTML, CSS, JavaScript, and Bootstrap 5.
+
+The system allows students to explore campus events, register for activities, and manage their event registrations. Administrators can create and manage events, monitor student registrations, and maintain event records.
 
 ## Features
 
+### Student Features
 - Student account registration, login, and logout.
 - Secure password hashing and session management.
-- Event listings with keyword search and category filters.
-- Detailed event information, including date, time, venue, organizer, and available slots.
-- Student event registration with duplicate-registration prevention.
-- Event capacity validation to prevent overbooking.
-- Personal registration history and cancellation.
-- Administrator dashboard for managing campus events.
-- Create, view, edit, archive, and restore events.
-- Attendee lists and registration status monitoring.
-- Event capacity tracking and event history.
-- PDO prepared statements and server-side input validation.
-- HTML escaping and CSRF protection.
-- Role-based access control for students and administrators.
-- Responsive green-themed design for desktop and mobile devices.
+- Browse available campus events.
+- Search events using keywords.
+- Filter events by category.
+- View event details, including date, time, venue, organizer, and available slots.
+- Register for available events.
+- Prevent duplicate event registrations.
+- Validate event capacity to prevent overbooking.
+- View personal registration history.
+- Cancel eligible event registrations.
+
+### Administrator Features
+- Administrator dashboard.
+- Create and manage campus events.
+- Edit event information.
+- View event registrations and attendee lists.
+- Monitor event capacity.
+- Archive and restore events.
+- View event history.
+- Monitor student participation.
+
+### System Features
+- Responsive design for desktop and mobile devices.
+- PDO prepared statements.
+- Server-side input validation.
+- HTML output escaping.
+- CSRF protection.
+- Role-based access control.
+- Green-themed user interface.
 
 ## Technologies Used
 
-- **Backend:** PHP 8+
-- **Database:** MySQL or MariaDB
-- **Frontend:** HTML5, CSS3, JavaScript
-- **UI Framework:** Bootstrap 5
-- **Local Development Environment:** XAMPP
-- **Database Management:** phpMyAdmin
+| Component | Technology |
+|---|---|
+| Backend | PHP 8+ |
+| Database | MySQL / MariaDB |
+| Frontend | HTML5, CSS3, JavaScript |
+| UI Framework | Bootstrap 5 |
+| Local Development | XAMPP |
+| Database Management | phpMyAdmin |
+| Code Editor | Visual Studio Code |
 
 ## System Requirements
 
@@ -46,7 +67,7 @@ Before running the application, make sure you have:
 
 Download and install XAMPP if it is not yet installed.
 
-Start the following services in the XAMPP Control Panel:
+Open the XAMPP Control Panel and start:
 
 - Apache
 - MySQL
@@ -63,7 +84,7 @@ C:\xampp\htdocs\campus-event-hub
 
 ### Step 3: Create the Database
 
-Open phpMyAdmin in your browser:
+Open phpMyAdmin:
 
 http://localhost/phpmyadmin/
 
@@ -73,26 +94,35 @@ Import the SQL file located at:
 database/campus_event_hub.sql
 ```
 
-Follow the import instructions in phpMyAdmin. Verify that the SQL file creates the `campus_event_hub` database and contains the required tables and sample data.
+The SQL file contains the database structure for the Campus Event Hub system.
 
-**Important:** Back up any existing database before importing SQL or changing its structure. Importing a schema does not automatically update existing tables when `CREATE TABLE IF NOT EXISTS` is used.
+After importing, verify that the `campus_event_hub` database and its required tables have been created.
+
+**Important:** Back up any existing database before importing SQL or changing its structure. The SQL file provides the database schema; it does not automatically populate the database with sample student accounts or event records.
 
 ### Step 4: Configure the Database Connection
 
-Open the following file in Visual Studio Code:
+Open this file in Visual Studio Code:
 
 ```text
 config/database.php
 ```
 
-Check the database connection settings. The default local XAMPP configuration may use:
+The default local XAMPP configuration may use:
 
 - Host: `localhost`
 - Database: `campus_event_hub`
 - Username: `root`
 - Password: Empty
 
-Use the actual credentials configured on your computer if they are different.
+The application also supports database settings through environment variables:
+
+- `DB_HOST`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASS`
+
+Use the actual database credentials configured on your computer.
 
 ### Step 5: Run the Application
 
@@ -105,16 +135,18 @@ The homepage should display the available campus events.
 ### Step 6: Register a Student Account
 
 1. Open the application.
-2. Click **Create Account** or **Register**.
+2. Click **Register** or **Create Account**.
 3. Enter the required information.
 4. Submit the registration form.
 5. Log in using your registered account.
 
 ### Step 7: Create an Administrator Account
 
-Register a normal account first. Then open phpMyAdmin and select the `campus_event_hub` database.
+Register a normal account first.
 
-Run the following query, replacing `YOUR_REGISTERED_USERNAME` with the actual username of the account you want to promote:
+Open phpMyAdmin and select the `campus_event_hub` database.
+
+Run the following SQL query, replacing `YOUR_REGISTERED_USERNAME` with the actual username of the account you want to promote:
 
 ```sql
 UPDATE users
@@ -124,7 +156,7 @@ WHERE username = 'YOUR_REGISTERED_USERNAME';
 
 Log out and log in again to refresh the account session.
 
-**Security reminder:** Public registration must not allow users to choose the administrator role. Grant administrator access only to authorized personnel.
+**Security Reminder:** Public registration should not allow users to select the administrator role. Administrator access must only be granted to authorized personnel.
 
 ## Main Project Structure
 
@@ -132,11 +164,14 @@ Log out and log in again to refresh the account session.
 campus-event-hub/
 │
 ├── admin/
+│   ├── add-event.php
+│   ├── cancel-event.php
 │   ├── dashboard.php
-│   ├── create-event.php
 │   ├── edit-event.php
+│   ├── event-history.php
+│   ├── manage-events.php
 │   ├── registrations.php
-│   └── restore-event.php
+│   └── restore event.php
 │
 ├── assets/
 │   ├── css/
@@ -153,22 +188,25 @@ campus-event-hub/
 │
 ├── includes/
 │   ├── auth.php
-│   ├── header.php
-│   └── footer.php
+│   ├── chatbot-widget.php
+│   ├── footer.php
+│   └── header.php
 │
-├── index.php
-├── events.php
-├── event-details.php
-├── login.php
-├── register.php
-├── logout.php
-├── register-event.php
-├── my-registrations.php
 ├── cancel-registration.php
+├── chatbot.php
+├── event-details.php
+├── events.php
+├── index.php
+├── login.php
+├── logout.php
+├── my-registrations.php
+├── register-event.php
+├── register.php
+├── ticket.php
 └── README.md
 ```
 
-*Note: This is an example structure. Your actual project may contain additional files or use different filenames.*
+*Note: The project may contain additional files or folders depending on the current development version.*
 
 ## User Roles
 
@@ -178,9 +216,9 @@ Students can:
 
 - Create an account and log in.
 - Browse and search campus events.
-- View event details.
+- View event information.
 - Register for available events.
-- Check registration history.
+- View personal registration history.
 - Cancel eligible registrations.
 
 ### Administrator
@@ -188,33 +226,34 @@ Students can:
 Administrators can:
 
 - Access the administrator dashboard.
-- Create and update events.
+- Create and edit campus events.
+- Manage event records.
 - Archive and restore events.
-- View event registrations.
-- Monitor event capacity and attendee information.
-- Review event history, if implemented.
+- View student registrations.
+- Monitor attendee information and event capacity.
+- Review event history.
 
 ## Security Features
 
-The application is designed to use the following security practices:
+The application uses security practices intended to help protect user accounts and system data:
 
-- **Password Hashing:** Passwords should be stored using PHP password-hashing functions.
+- **Password Hashing:** PHP password-hashing functions are used to protect stored passwords.
 - **Prepared Statements:** PDO prepared statements help prevent SQL injection.
 - **Input Validation:** User input is validated on the server.
 - **Output Escaping:** Dynamic HTML output is escaped to help prevent cross-site scripting (XSS).
-- **CSRF Protection:** Forms that change data should validate CSRF tokens.
-- **Role-Based Access Control:** Student and administrator permissions are checked on the server.
-- **Session Management:** Sessions should be handled securely during login and logout.
+- **CSRF Protection:** Forms that modify data use CSRF token validation.
+- **Role-Based Access Control:** User permissions are checked on the server.
+- **Session Management:** Sessions are handled during login and logout.
 
-These protections must be implemented correctly in the PHP files; listing them here does not automatically enable them.
+These protections depend on their correct implementation in the application code.
 
 ## Testing Checklist
 
 Before submitting or deploying the application, test the following:
 
-1. The homepage displays upcoming events.
+1. The homepage displays available campus events.
 2. Students can register for an account.
-3. Valid login credentials allow access to the application.
+3. Valid login credentials allow access to the system.
 4. Invalid login credentials display an appropriate error message.
 5. Students can browse and search events.
 6. Event details display the correct information.
@@ -242,7 +281,7 @@ Before submitting or deploying the application, test the following:
 ### Page Not Found
 
 - Make sure the project folder is inside `C:\xampp\htdocs\`.
-- Verify the folder name is `campus-event-hub`.
+- Verify that the folder name is `campus-event-hub`.
 - Check the requested PHP filename.
 - Confirm that Apache is running.
 
@@ -272,11 +311,11 @@ Before hosting the application online:
 - Update `APP_BASE_URL` in `includes/auth.php` if the application is hosted at a different path.
 - Use a hosting provider that supports PHP and MySQL or MariaDB.
 
-**Note:** GitHub Pages does not execute PHP. A PHP-compatible hosting service is required to run this application.
+**Important:** GitHub Pages does not execute PHP. A PHP-compatible hosting service is required to run this application.
 
 ## Project Purpose
 
-Mini Campus Event Hub aims to provide a convenient way for students to discover campus activities and manage their event registrations. It also helps administrators organize events, monitor participation, and manage event information in one centralized system.
+Campus Event Hub aims to provide a convenient platform for students to discover campus activities and manage their event registrations. It also helps administrators organize events, monitor participation, and manage event information in one centralized system.
 
 ## License
 
