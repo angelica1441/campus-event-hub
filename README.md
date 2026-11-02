@@ -4,7 +4,37 @@ Campus Event Hub is a web-based campus event management system developed using P
 
 The system allows students to explore campus events, register for activities, and manage their event registrations. Administrators can create and manage events, monitor student registrations, and maintain event records.
 
+## Homepage Preview
+
+The following screenshots show the different homepage views of Campus Event Hub based on user roles.
+
+### 1. Guest Homepage
+
+Guests can explore available campus events and view event information without logging in.
+
+![Guest Homepage](assets/images/homepage-guest.png)
+
+### 2. Student Homepage
+
+Students can browse campus events, register for activities, and access their personal event information.
+
+![Student Homepage](assets/images/homepage-student.png)
+
+### 3. Administrator Homepage
+
+Administrators can access the dashboard, manage campus events, monitor registrations, and maintain event records.
+
+![Administrator Homepage](assets/images/homepage-admin.png)
+
+---
+
 ## Features
+
+### Guest Features
+- Browse available campus events without logging in.
+- View event details.
+- Explore event categories and information.
+- Access the login and registration pages.
 
 ### Student Features
 - Student account registration, login, and logout.
@@ -86,7 +116,7 @@ C:\xampp\htdocs\campus-event-hub
 
 Open phpMyAdmin:
 
-http://localhost/phpmyadmin/
+[http://localhost/phpmyadmin/](http://localhost/phpmyadmin/)
 
 Import the SQL file located at:
 
@@ -128,7 +158,7 @@ Use the actual database credentials configured on your computer.
 
 Open your browser and visit:
 
-http://localhost/campus-event-hub/
+[http://localhost/campus-event-hub/](http://localhost/campus-event-hub/)
 
 The homepage should display the available campus events.
 
@@ -179,6 +209,9 @@ campus-event-hub/
 │   ├── js/
 │   │   └── script.js
 │   └── images/
+│       ├── homepage-guest.png
+│       ├── homepage-student.png
+│       └── homepage-admin.png
 │
 ├── config/
 │   └── database.php
@@ -209,6 +242,15 @@ campus-event-hub/
 *Note: The project may contain additional files or folders depending on the current development version.*
 
 ## User Roles
+
+### Guest
+
+Guests can:
+
+- Browse available campus events.
+- View event information.
+- Explore the homepage without logging in.
+- Access login and registration pages.
 
 ### Student
 
@@ -252,22 +294,23 @@ These protections depend on their correct implementation in the application code
 Before submitting or deploying the application, test the following:
 
 1. The homepage displays available campus events.
-2. Students can register for an account.
-3. Valid login credentials allow access to the system.
-4. Invalid login credentials display an appropriate error message.
-5. Students can browse and search events.
-6. Event details display the correct information.
-7. Students can register for available events.
-8. Duplicate registrations are prevented.
-9. Registration is rejected when an event is full.
-10. Registration is rejected when an event is closed or unavailable.
-11. Students can view their registration history.
-12. Students can cancel eligible registrations.
-13. Administrators can create and edit events.
-14. Administrators can view event attendees.
-15. Students cannot directly access administrator-only pages.
-16. Database records remain saved after refreshing the browser.
-17. The application works on desktop and mobile devices.
+2. Guests can browse public event information.
+3. Students can register for an account.
+4. Valid login credentials allow access to the system.
+5. Invalid login credentials display an appropriate error message.
+6. Students can browse and search events.
+7. Event details display the correct information.
+8. Students can register for available events.
+9. Duplicate registrations are prevented.
+10. Registration is rejected when an event is full.
+11. Registration is rejected when an event is closed or unavailable.
+12. Students can view their registration history.
+13. Students can cancel eligible registrations.
+14. Administrators can create and edit events.
+15. Administrators can view event attendees.
+16. Students and guests cannot directly access administrator-only pages.
+17. Database records remain saved after refreshing the browser.
+18. The application works on desktop and mobile devices.
 
 ## Troubleshooting
 
