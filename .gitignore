@@ -1,0 +1,51 @@
+# Environment and secret files
+.env
+.env.*
+!.env.example
+
+# Local database credentials
+config/database.local.php
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Log files
+*.log
+*.tmp
+*.bak
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# User uploaded files
+/uploads/*
+!/uploads/.gitkeep
+
+# Environment and secret files
+.env
+.env.*
+!.env.example
+
+# Local database configuration
+config/database.local.php
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Uploaded files
+/uploads/*
+!/uploads/.gitkeep
