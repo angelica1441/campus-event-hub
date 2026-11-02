@@ -80,7 +80,7 @@ The dashboard provides an overview of the system and its event activities.
 
 ### 2. Admin Events
 
-![Admin Events](assets/images/admin-events%283%29.png)
+![Admin Events](assets/images/admin-event%20history%20%283%29.png)
 
 ### 3. Manage Events
 
@@ -304,11 +304,11 @@ campus-event-hub/
 │       ├── homepage-guest.png
 │       ├── homepage-student.png
 │       ├── homepage-admin.png
-│       ├── admin-events(3).png
 │       ├── admin-dashboard.png
 │       ├── admin-dashboard1.png
 │       ├── admin-dashboard2.png
 │       ├── admin-event history.png
+│       ├── admin-event history (3).png
 │       ├── admin-manage events.png
 │       ├── admin-manage events1.png
 │       ├── admin-manage events2.png
