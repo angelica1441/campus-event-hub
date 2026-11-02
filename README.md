@@ -28,6 +28,98 @@ Administrators can access the dashboard, manage campus events, monitor registrat
 
 ---
 
+## Authentication Pages
+
+These pages allow users to access the system or create their own accounts.
+
+### 1. Login Page
+
+![Login Page](assets/images/login-page.png)
+
+![Login Page View 2](assets/images/login1-page.png)
+
+### 2. Create Account Page
+
+![Create Account Page](assets/images/create%20account-page.png)
+
+![Create Account Page View 2](assets/images/create%20account1-page.png)
+
+---
+
+## Student Pages
+
+These pages allow students to explore campus events and manage their registrations.
+
+### 1. Browse Events
+
+![Browse Events](assets/images/browse-events.png)
+
+![Browse Events View 2](assets/images/browse1-events.png)
+
+### 2. My Registrations
+
+![My Registrations](assets/images/my-registrations.png)
+
+![My Registrations View 2](assets/images/my-registrations1.png)
+
+---
+
+## Administrator Pages
+
+These pages allow administrators to monitor the system and manage campus events and student registrations.
+
+### 1. Admin Dashboard
+
+The dashboard provides an overview of the system and its event activities.
+
+![Admin Dashboard](assets/images/admin-dashboard.png)
+
+![Admin Dashboard View 2](assets/images/admin-dashboard1.png)
+
+![Admin Dashboard View 3](assets/images/admin-dashboard2.png)
+
+### 2. Admin Events
+
+![Admin Events](assets/images/admin-events%283%29.png)
+
+### 3. Manage Events
+
+Administrators can manage and maintain campus event records.
+
+![Admin Manage Events](assets/images/admin-manage%20events.png)
+
+![Admin Manage Events View 2](assets/images/admin-manage%20events1.png)
+
+![Admin Manage Events View 3](assets/images/admin-manage%20events2.png)
+
+### 4. Event History
+
+Administrators can review archived and previously managed events.
+
+![Admin Event History](assets/images/admin-event%20history.png)
+
+### 5. Admin Registrations
+
+Administrators can monitor student registrations and view attendee information.
+
+![Admin Registrations](assets/images/admin-registrations.png)
+
+![Admin Registrations View 2](assets/images/admin-registrations1.png)
+
+![Admin Registrations View 3](assets/images/admin-registrations2.png)
+
+![Admin Registrations View 4](assets/images/admin-registration3.png)
+
+---
+
+## Chatbot Feature
+
+Campus Event Hub includes a chatbot feature to help users access assistance and information about the system.
+
+![Campus Event Chatbot](assets/images/campus-event%20chatbot.png)
+
+---
+
 ## Features
 
 ### Guest Features
@@ -211,7 +303,28 @@ campus-event-hub/
 │   └── images/
 │       ├── homepage-guest.png
 │       ├── homepage-student.png
-│       └── homepage-admin.png
+│       ├── homepage-admin.png
+│       ├── admin-events(3).png
+│       ├── admin-dashboard.png
+│       ├── admin-dashboard1.png
+│       ├── admin-dashboard2.png
+│       ├── admin-event history.png
+│       ├── admin-manage events.png
+│       ├── admin-manage events1.png
+│       ├── admin-manage events2.png
+│       ├── admin-registrations.png
+│       ├── admin-registrations1.png
+│       ├── admin-registrations2.png
+│       ├── admin-registration3.png
+│       ├── campus-event chatbot.png
+│       ├── create account-page.png
+│       ├── create account1-page.png
+│       ├── browse-events.png
+│       ├── browse1-events.png
+│       ├── login-page.png
+│       ├── login1-page.png
+│       ├── my-registrations.png
+│       └── my-registrations1.png
 │
 ├── config/
 │   └── database.php
