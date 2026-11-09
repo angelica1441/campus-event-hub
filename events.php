@@ -19,9 +19,10 @@ $errorMessage = '';
 |--------------------------------------------------------------------------
 | EVENT IMAGE MAPPING
 |--------------------------------------------------------------------------
-| Assign a relevant image based on the event title/category.
-| These are display-only mappings; no database changes are required.
+| Sport Fest uses the downloaded local image.
+| Other categories retain their existing images.
 */
+
 if (!function_exists('campus_event_image')) {
     function campus_event_image(array $event): string
     {
@@ -29,27 +30,28 @@ if (!function_exists('campus_event_image')) {
         $category = strtolower(trim((string) ($event['category'] ?? '')));
         $text = $title . ' ' . $category;
 
+        $basePath = rtrim(app_url(), '/') . '/';
+
         $images = [
             'seminar' => 'https://emp-media-prod.s3.amazonaws.com/20190620101618_5d0b5cf243548/thumbnails/1561025778_0_20190620101618_5d0b5cf243548.jpg',
 
             'workshop' => 'https://api.asapkerala.gov.in/uploads/course/image/Web-development-1723643575051-788843604.jpg',
 
-            'sports' => 'https://scontent.fmnl17-4.fna.fbcdn.net/v/t39.30808-6/865945162_1578262454105566_1870471755244472758_n.jpg?stp=dst-jpg_tt6&cstp=mx2048x1536&ctp=s2048x1536&_nc_cat=107&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeE41D9xweh527idimI1-3KjCowDGtcmX-IKjAMa1yZf4jBiE9eMdPXdJMafc-o-Sa96esffbatppW9KGq2G571Q&_nc_ohc=3M0vA0VjTFMQ7kNvwECj6eQ&_nc_oc=AdqVIsK2avZqniFEtilPrD05uTH69npbk08X8QtpcUQMtSWAP0FltB9bAnZ9vKz7twI&_nc_zt=23&_nc_ht=scontent.fmnl17-4.fna&_nc_gid=l7nsTP4KXE3MlXsijabWeg&_nc_ss=7b2a8&oh=00_AQT3QOjlbBMkWsZ-HGVtEAOjWbQGt1kjaKo1lxTn4OS1AQ&oe=6AE8DCE6',
+            'sports' => $basePath . 'assets/images/sportfest.jpg',
 
             'hackathon' => 'https://www.paterostechnologicalcollege.edu.ph/ASSETS/IMAGES/IICT/IICT6.jpg',
         ];
 
-        if (strpos($text, 'hackathon') !== false) {
-            return $images['hackathon'];
+        // Detect Sport Fest and other sports-related events first.
+        if (preg_match(
+            '/sport|athletic|basketball|volleyball|intramural|sportsfest/',
+            $text
+        )) {
+            return $images['sports'];
         }
 
-        if (
-            strpos($text, 'sport') !== false ||
-            strpos($text, 'athletic') !== false ||
-            strpos($text, 'basketball') !== false ||
-            strpos($text, 'volleyball') !== false
-        ) {
-            return $images['sports'];
+        if (strpos($text, 'hackathon') !== false) {
+            return $images['hackathon'];
         }
 
         if (
@@ -73,6 +75,7 @@ if (!function_exists('campus_event_image')) {
 }
 
 try {
+
     $categoryStmt = $pdo->query("
         SELECT DISTINCT category
         FROM events

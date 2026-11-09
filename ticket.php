@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/auth.php';
 
@@ -19,13 +18,15 @@ if (!$user || strtolower((string)($user['role'] ?? '')) !== 'student') {
 if (!function_exists('e')) {
     function e($value): string
     {
-        return htmlspecialchars(
-            (string)$value,
-            ENT_QUOTES,
-            'UTF-8'
-        );
+        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
     }
 }
+
+/*
+|--------------------------------------------------------------------------
+| Validate registration ID
+|--------------------------------------------------------------------------
+*/
 
 $id = filter_input(INPUT_GET, 'registration_id', FILTER_VALIDATE_INT);
 
@@ -34,12 +35,28 @@ if (!$id || $id < 1) {
     exit('Invalid ticket reference.');
 }
 
+$userId = (int)($user['id'] ?? 0);
+
+if ($userId < 1) {
+    http_response_code(403);
+    exit('Invalid student account.');
+}
+
+/*
+|--------------------------------------------------------------------------
+| Load registration and generate secure QR token
+|--------------------------------------------------------------------------
+*/
+
 try {
+    $pdo->beginTransaction();
+
     $stmt = $pdo->prepare(
         "SELECT
             r.id AS registration_id,
             r.status AS registration_status,
             r.registered_at,
+            r.qr_token,
             e.id AS event_id,
             e.title,
             e.category,
@@ -52,30 +69,73 @@ try {
          INNER JOIN events e ON e.id = r.event_id
          WHERE r.id = ?
            AND r.user_id = ?
-         LIMIT 1"
+         LIMIT 1
+         FOR UPDATE"
     );
 
-    $stmt->execute([
-        $id,
-        (int)($user['id'] ?? 0)
-    ]);
-
+    $stmt->execute([$id, $userId]);
     $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
 
-} catch (PDOException $exception) {
-    error_log('Ticket: ' . $exception->getMessage());
+    if (
+        !$ticket ||
+        strtolower((string)$ticket['registration_status']) !== 'registered'
+    ) {
+        $pdo->rollBack();
+
+        http_response_code(404);
+        exit('Ticket not found or registration cancelled.');
+    }
+
+    /*
+     * Generate a secure token if the existing token is invalid.
+     * 32 random bytes = 64 hexadecimal characters.
+     */
+
+    $qrToken = (string)($ticket['qr_token'] ?? '');
+
+    if (strlen($qrToken) !== 64 || !ctype_xdigit($qrToken)) {
+        $qrToken = bin2hex(random_bytes(32));
+
+        $update = $pdo->prepare(
+            "UPDATE registrations
+             SET qr_token = ?
+             WHERE id = ?
+               AND user_id = ?
+               AND status = 'registered'"
+        );
+
+        $update->execute([
+            $qrToken,
+            $id,
+            $userId
+        ]);
+
+        if ($update->rowCount() !== 1) {
+            throw new RuntimeException(
+                'Unable to save the QR ticket token.'
+            );
+        }
+    }
+
+    $pdo->commit();
+
+} catch (Throwable $exception) {
+
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    error_log('Ticket QR generation: ' . $exception->getMessage());
 
     http_response_code(500);
-    exit('Unable to load ticket. Check database columns.');
+    exit('Unable to generate your ticket. Please try again.');
 }
 
-if (
-    !$ticket ||
-    strtolower((string)$ticket['registration_status']) !== 'registered'
-) {
-    http_response_code(404);
-    exit('Ticket not found or registration cancelled.');
-}
+/*
+|--------------------------------------------------------------------------
+| Ticket information
+|--------------------------------------------------------------------------
+*/
 
 $ticketNumber = 'CEH-' . date('Y') . '-' .
     str_pad(
@@ -104,9 +164,25 @@ if (!$time) {
     $time = 'To be announced';
 }
 
+/*
+|--------------------------------------------------------------------------
+| QR image - Opens Attendance Page
+|--------------------------------------------------------------------------
+|
+| The QR now contains the full Attendance URL with the secure token.
+| Update this base URL if your local IP address changes.
+|
+*/
+
+$appBaseUrl = 'http://192.168.100.16/campus-event-hub';
+
+$attendanceUrl = $appBaseUrl
+    . '/attendance-check.php?token='
+    . rawurlencode($qrToken);
+
 $qrCodeUrl =
-    'https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=' .
-    rawurlencode($ticketNumber);
+    'https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data='
+    . rawurlencode($attendanceUrl);
 
 $pageTitle = 'Event Ticket';
 
@@ -245,6 +321,12 @@ require_once __DIR__ . '/includes/header.php';
 .ticket-btn.primary {
     background: linear-gradient(135deg, #bdffd5, #61efa0);
     color: #082619 !important;
+}
+
+.ticket-security-note {
+    font-size: 12px;
+    color: #52675a;
+    margin-top: 8px;
 }
 
 @media (max-width: 700px) {
@@ -435,14 +517,18 @@ require_once __DIR__ . '/includes/header.php';
 
                 <img
                     src="<?= e($qrCodeUrl) ?>"
-                    alt="QR ticket reference"
+                    alt="Attendance QR Code"
                 >
 
-                <strong>Ticket QR Code</strong>
+                <strong>Attendance QR Code</strong>
 
                 <p>
-                    QR contains the unique ticket reference only.
-                    Verify it against the registration record.
+                    Scan this QR code using your phone camera
+                    to open the Attendance page.
+                </p>
+
+                <p class="ticket-security-note">
+                    Each ticket has a unique secure QR token.
                 </p>
 
             </aside>
@@ -454,3 +540,8 @@ require_once __DIR__ . '/includes/header.php';
 </main>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+SET qr_token = ?
+ WHERE id = ?
+   AND user_id = ?
+   AND status = 'registered'
+   AND qr_token IS NULL"

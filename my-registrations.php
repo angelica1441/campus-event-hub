@@ -44,36 +44,107 @@ $loadError = '';
 
 try {
     /*
-     * IMPORTANT:
-     * Do not filter by status here.
-     * First retrieve this user's registrations so we can
-     * see what status values are actually stored.
-     */
+    |--------------------------------------------------------------------------
+    | 1. Load regular registrations
+    |--------------------------------------------------------------------------
+    | Cancelled registrations are hidden only when the student
+    | currently has a waiting-list entry for the same event.
+    | This prevents duplicate event cards.
+    */
+
     $stmt = $pdo->prepare(
         "SELECT
             r.id AS registration_id,
             r.user_id,
             r.event_id,
             r.status AS registration_status,
-            r.registered_at,
+            r.registered_at AS activity_date,
             e.title AS event_title,
             e.category,
             e.event_date,
             e.start_time,
             e.end_time,
-            e.venue
+            e.venue,
+            'registration' AS record_type
          FROM registrations r
-         INNER JOIN events e ON e.id = r.event_id
+         INNER JOIN events e
+            ON e.id = r.event_id
          WHERE r.user_id = ?
+           AND NOT (
+                LOWER(TRIM(r.status)) = 'cancelled'
+                AND EXISTS (
+                    SELECT 1
+                    FROM event_waiting_list wl
+                    WHERE wl.event_id = r.event_id
+                      AND wl.user_id = r.user_id
+                      AND wl.status = 'waiting'
+                )
+           )
          ORDER BY r.registered_at DESC"
     );
 
     $stmt->execute([$userId]);
+
     $registrations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2. Load students currently in the waiting list
+    |--------------------------------------------------------------------------
+    */
+
+    $waitingStmt = $pdo->prepare(
+        "SELECT
+            NULL AS registration_id,
+            wl.user_id,
+            wl.event_id,
+            wl.status AS registration_status,
+            wl.created_at AS activity_date,
+            e.title AS event_title,
+            e.category,
+            e.event_date,
+            e.start_time,
+            e.end_time,
+            e.venue,
+            'waiting_list' AS record_type
+         FROM event_waiting_list wl
+         INNER JOIN events e
+            ON e.id = wl.event_id
+         WHERE wl.user_id = ?
+           AND wl.status = 'waiting'
+         ORDER BY wl.created_at DESC"
+    );
+
+    $waitingStmt->execute([$userId]);
+
+    $waitingRegistrations = $waitingStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3. Combine registrations and waiting-list entries
+    |--------------------------------------------------------------------------
+    */
+
+    $registrations = array_merge(
+        $registrations,
+        $waitingRegistrations
+    );
+
+    /*
+    | Sort by most recent registration or waiting-list entry.
+    */
+
+    usort($registrations, static function ($a, $b) {
+        $dateA = strtotime((string) ($a['activity_date'] ?? '')) ?: 0;
+        $dateB = strtotime((string) ($b['activity_date'] ?? '')) ?: 0;
+
+        return $dateB <=> $dateA;
+    });
 
 } catch (PDOException $exception) {
     error_log('My registrations: ' . $exception->getMessage());
-    $loadError = 'Hindi ma-load ang registrations. I-check ang database columns.';
+
+    $loadError = 'Hindi ma-load ang registrations at waiting list. I-check ang database tables at columns.';
 }
 
 $pageTitle = 'My Registrations';
@@ -170,6 +241,16 @@ require_once __DIR__ . '/includes/header.php';
     color: #ffd7dc;
 }
 
+.myreg-status.waiting {
+    background: #594414;
+    color: #ffe69a;
+}
+
+.myreg-status.attended {
+    background: #173e60;
+    color: #b9ddff;
+}
+
 .myreg-actions {
     display: flex;
     flex-wrap: wrap;
@@ -205,6 +286,21 @@ require_once __DIR__ . '/includes/header.php';
     margin: 0;
 }
 
+.myreg-info {
+    margin-top: 15px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #493b16;
+    color: #ffe8a6;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.myreg-info.success {
+    background: #164b31;
+    color: #c8ffda;
+}
+
 .myreg-empty {
     text-align: center;
     padding: 45px 20px;
@@ -235,28 +331,35 @@ require_once __DIR__ . '/includes/header.php';
         <h1>My Registrations</h1>
 
         <p>
-            View your event registrations, access your ticket,
-            and manage your bookings here.
+            View your event registrations, check your waiting-list
+            status, access your ticket, and manage your bookings here.
         </p>
     </section>
 
     <?php if ($success !== ''): ?>
-        <div class="myreg-alert"><?= e($success) ?></div>
+        <div class="myreg-alert">
+            <?= e($success) ?>
+        </div>
     <?php endif; ?>
 
     <?php if ($error !== ''): ?>
-        <div class="myreg-alert error"><?= e($error) ?></div>
+        <div class="myreg-alert error">
+            <?= e($error) ?>
+        </div>
     <?php endif; ?>
 
     <?php if ($loadError !== ''): ?>
-        <div class="myreg-alert error"><?= e($loadError) ?></div>
+        <div class="myreg-alert error">
+            <?= e($loadError) ?>
+        </div>
     <?php endif; ?>
 
     <div class="myreg-toolbar">
         <div>
             <h2>Your Events</h2>
+
             <p>
-                Total registrations found: <?= count($registrations) ?>
+                Total records found: <?= count($registrations) ?>
             </p>
         </div>
 
@@ -269,12 +372,12 @@ require_once __DIR__ . '/includes/header.php';
 
         <section class="myreg-empty">
             <div style="font-size:44px">🎟️</div>
+
             <h2>No registrations found</h2>
 
             <p>
-                No registration records were found for your logged-in
-                account. If you already registered, check the database
-                steps below.
+                You do not have any event registrations or
+                waiting-list entries yet.
             </p>
 
             <a class="myreg-btn primary" href="events.php">
@@ -293,27 +396,52 @@ require_once __DIR__ . '/includes/header.php';
                     (string) ($r['registration_status'] ?? '')
                 ));
 
+                $isWaiting = (
+                    ($r['record_type'] ?? '') === 'waiting_list'
+                    && $status === 'waiting'
+                );
+
+                $isRegistered = $status === 'registered';
+
+                $isAttended = $status === 'attended';
+
                 $isCancelled = in_array(
                     $status,
                     ['cancelled', 'canceled'],
                     true
                 );
 
+                $statusClass = '';
+
+                if ($isWaiting) {
+                    $statusClass = 'waiting';
+                } elseif ($isCancelled) {
+                    $statusClass = 'cancelled';
+                } elseif ($isAttended) {
+                    $statusClass = 'attended';
+                }
+
                 $date = !empty($r['event_date'])
-                    ? date('F j, Y', strtotime((string)$r['event_date']))
+                    ? date(
+                        'F j, Y',
+                        strtotime((string) $r['event_date'])
+                    )
                     : 'To be announced';
 
                 $time = !empty($r['start_time'])
-                    ? date('g:i A', strtotime((string)$r['start_time']))
+                    ? date(
+                        'g:i A',
+                        strtotime((string) $r['start_time'])
+                    )
                     : 'To be announced';
 
                 if (
-                    $time !== 'To be announced' &&
-                    !empty($r['end_time'])
+                    $time !== 'To be announced'
+                    && !empty($r['end_time'])
                 ) {
                     $time .= ' – ' . date(
                         'g:i A',
-                        strtotime((string)$r['end_time'])
+                        strtotime((string) $r['end_time'])
                     );
                 }
 
@@ -325,30 +453,95 @@ require_once __DIR__ . '/includes/header.php';
                 <article class="myreg-card">
 
                     <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-                        <span style="font-size:25px">🎓</span>
 
-                        <span class="myreg-status <?= $isCancelled ? 'cancelled' : '' ?>">
+                        <span style="font-size:25px">
+                            <?= $isWaiting ? '⏳' : '🎓' ?>
+                        </span>
+
+                        <span class="myreg-status <?= e($statusClass) ?>">
                             <?= e($displayStatus) ?>
                         </span>
+
                     </div>
 
                     <h2><?= e($r['event_title']) ?></h2>
 
                     <div class="myreg-meta">
-                        <div>📅 <?= e($date) ?></div>
-                        <div>🕒 <?= e($time) ?></div>
-                        <div>📍 <?= e($r['venue'] ?: 'Venue to be announced') ?></div>
-                        <div>🏷️ <?= e($r['category'] ?: 'Campus Event') ?></div>
-                        <div>Registration ID: <?= (int)$r['registration_id'] ?></div>
+
+                        <div>
+                            📅 <?= e($date) ?>
+                        </div>
+
+                        <div>
+                            🕒 <?= e($time) ?>
+                        </div>
+
+                        <div>
+                            📍 <?= e($r['venue'] ?: 'Venue to be announced') ?>
+                        </div>
+
+                        <div>
+                            🏷️ <?= e($r['category'] ?: 'Campus Event') ?>
+                        </div>
+
+                        <?php if (!$isWaiting && !empty($r['registration_id'])): ?>
+                            <div>
+                                Registration ID:
+                                <?= (int) $r['registration_id'] ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($isWaiting): ?>
+                            <div>
+                                Waiting List Entry:
+                                <?= !empty($r['activity_date'])
+                                    ? e(date(
+                                        'F j, Y g:i A',
+                                        strtotime((string) $r['activity_date'])
+                                    ))
+                                    : 'Available' ?>
+                            </div>
+                        <?php endif; ?>
+
                     </div>
+
+                    <?php if ($isWaiting): ?>
+
+                        <div class="myreg-info">
+                            ⏳ You are currently on the waiting list
+                            for this event. Your registration will be
+                            promoted when a slot becomes available.
+                        </div>
+
+                    <?php elseif ($isRegistered): ?>
+
+                        <div class="myreg-info success">
+                            ✓ Your event registration is active.
+                            You can access your QR ticket below.
+                        </div>
+
+                    <?php elseif ($isAttended): ?>
+
+                        <div class="myreg-info success">
+                            ✓ Your attendance has been recorded
+                            for this event.
+                        </div>
+
+                    <?php elseif ($isCancelled): ?>
+
+                        <div class="myreg-info">
+                            This registration has been cancelled.
+                        </div>
+
+                    <?php endif; ?>
 
                     <div class="myreg-actions">
 
-                        <?php if (!$isCancelled): ?>
+                        <?php if ($isRegistered && !empty($r['registration_id'])): ?>
 
                             <a
                                 class="myreg-btn primary"
-                                href="ticket.php?registration_id=<?= (int)$r['registration_id'] ?>"
+                                href="ticket.php?registration_id=<?= (int) $r['registration_id'] ?>"
                             >
                                 ▦ View QR Ticket
                             </a>
@@ -358,10 +551,11 @@ require_once __DIR__ . '/includes/header.php';
                                 action="cancel-registration.php"
                                 onsubmit="return confirm('Are you sure you want to cancel this registration?');"
                             >
+
                                 <input
                                     type="hidden"
                                     name="registration_id"
-                                    value="<?= (int)$r['registration_id'] ?>"
+                                    value="<?= (int) $r['registration_id'] ?>"
                                 >
 
                                 <input
@@ -373,13 +567,14 @@ require_once __DIR__ . '/includes/header.php';
                                 <button class="myreg-btn" type="submit">
                                     Cancel Registration
                                 </button>
+
                             </form>
 
                         <?php endif; ?>
 
                         <a
                             class="myreg-btn"
-                            href="event-details.php?id=<?= (int)$r['event_id'] ?>"
+                            href="event-details.php?id=<?= (int) $r['event_id'] ?>"
                         >
                             Event Details
                         </a>

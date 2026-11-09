@@ -1,16 +1,14 @@
-
 <?php
-
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 require_admin();
 
 // Allow POST requests only
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     redirect('admin/event-history.php');
+    exit;
 }
-
 // Verify CSRF token
 require_valid_csrf();
 

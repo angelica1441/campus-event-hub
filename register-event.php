@@ -29,9 +29,16 @@ if (!$id || $id < 1) {
 
 $userId = (int)($user['id'] ?? $_SESSION['user_id'] ?? 0);
 
+if ($userId < 1) {
+    $_SESSION['flash_error'] = 'Invalid student account.';
+    redirect('events.php');
+}
+
 try {
     $pdo->beginTransaction();
 
+    // Lock the event to prevent simultaneous registrations
+    // from exceeding the event capacity.
     $stmt = $pdo->prepare(
         "SELECT id, title, event_date, status, capacity
          FROM events
@@ -44,10 +51,12 @@ try {
 
     if (!$event) {
         $pdo->rollBack();
+
         $_SESSION['flash_error'] = 'Event not found.';
         redirect('events.php');
     }
 
+    // Check whether registration is still open.
     $eventStatus = strtolower((string)$event['status']);
 
     if (
@@ -58,10 +67,14 @@ try {
         )
     ) {
         $pdo->rollBack();
-        $_SESSION['flash_error'] = 'Registration is closed for this event.';
+
+        $_SESSION['flash_error'] =
+            'Registration is closed for this event.';
+
         redirect('event-details.php?id=' . $id);
     }
 
+    // Check the student's existing registration.
     $stmt = $pdo->prepare(
         "SELECT id, status
          FROM registrations
@@ -85,7 +98,36 @@ try {
         redirect('my-registrations.php');
     }
 
+    // Check whether the student is already in the waiting list.
+    $stmt = $pdo->prepare(
+        "SELECT id, status
+         FROM event_waiting_list
+         WHERE event_id = ? AND user_id = ?
+         LIMIT 1
+         FOR UPDATE"
+    );
+
+    $stmt->execute([$id, $userId]);
+    $waitingEntry = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Do not allow a student to bypass an existing waiting list.
+    if (
+        $waitingEntry &&
+        strtolower((string)$waitingEntry['status']) === 'waiting'
+    ) {
+        $pdo->commit();
+
+        $_SESSION['flash_success'] =
+            'You are already on the waiting list for this event.';
+
+        redirect('event-details.php?id=' . $id);
+    }
+
+    // Check event capacity.
+    // Capacity 0 means unlimited, following the existing project logic.
     $capacity = (int)($event['capacity'] ?? 0);
+
+    $registeredCount = 0;
 
     if ($capacity > 0) {
         $stmt = $pdo->prepare(
@@ -96,17 +138,44 @@ try {
         );
 
         $stmt->execute([$id]);
-
-        if ((int)$stmt->fetchColumn() >= $capacity) {
-            $pdo->rollBack();
-
-            $_SESSION['flash_error'] =
-                'This event is already full.';
-
-            redirect('event-details.php?id=' . $id);
-        }
+        $registeredCount = (int)$stmt->fetchColumn();
     }
 
+    // If the event is full, add the student to the waiting list.
+    if ($capacity > 0 && $registeredCount >= $capacity) {
+
+        if ($waitingEntry) {
+            // Reuse the student's previous waiting-list record.
+            $stmt = $pdo->prepare(
+                "UPDATE event_waiting_list
+                 SET status = 'waiting',
+                     created_at = CURRENT_TIMESTAMP,
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE id = ?"
+            );
+
+            $stmt->execute([(int)$waitingEntry['id']]);
+
+        } else {
+            $stmt = $pdo->prepare(
+                "INSERT INTO event_waiting_list
+                    (event_id, user_id, status)
+                 VALUES
+                    (?, ?, 'waiting')"
+            );
+
+            $stmt->execute([$id, $userId]);
+        }
+
+        $pdo->commit();
+
+        $_SESSION['flash_success'] =
+            'This event is full. You have successfully joined the waiting list.';
+
+        redirect('event-details.php?id=' . $id);
+    }
+
+    // There is an available slot. Register the student.
     if ($existing) {
         $stmt = $pdo->prepare(
             "UPDATE registrations
@@ -115,7 +184,11 @@ try {
              WHERE id = ? AND user_id = ?"
         );
 
-        $stmt->execute([(int)$existing['id'], $userId]);
+        $stmt->execute([
+            (int)$existing['id'],
+            $userId
+        ]);
+
     } else {
         $stmt = $pdo->prepare(
             "INSERT INTO registrations
@@ -127,6 +200,18 @@ try {
         $stmt->execute([$userId, $id]);
     }
 
+    // Update an old waiting-list record if one exists.
+    if ($waitingEntry) {
+        $stmt = $pdo->prepare(
+            "UPDATE event_waiting_list
+             SET status = 'registered',
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = ?"
+        );
+
+        $stmt->execute([(int)$waitingEntry['id']]);
+    }
+
     $pdo->commit();
 
     $_SESSION['flash_success'] =
@@ -135,6 +220,7 @@ try {
     redirect('my-registrations.php');
 
 } catch (Throwable $e) {
+
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
@@ -142,7 +228,7 @@ try {
     error_log('Register event: ' . $e->getMessage());
 
     $_SESSION['flash_error'] =
-        'Registration failed. Check the registrations table columns and try again.';
+        'Registration failed. Please try again.';
 
     redirect('event-details.php?id=' . $id);
 }

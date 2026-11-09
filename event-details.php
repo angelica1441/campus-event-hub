@@ -17,7 +17,7 @@ if (!function_exists('event_detail_image')) {
         $images = [
             'seminar' => 'https://emp-media-prod.s3.amazonaws.com/20190620101618_5d0b5cf243548/thumbnails/1561025778_0_20190620101618_5d0b5cf243548.jpg',
             'workshop' => 'https://api.asapkerala.gov.in/uploads/course/image/Web-development-1723643575051-788843604.jpg',
-            'sports' => 'https://scontent.fmnl17-4.fna.fbcdn.net/v/t39.30808-6/865945162_1578262454105566_1870471755244472758_n.jpg?stp=dst-jpg_tt6&cstp=mx2048x1536&ctp=s2048x1536&_nc_cat=107&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeE41D9xweh527idimI1-3KjCowDGtcmX-IKjAMa1yZf4jBiE9eMdPXdJMafc-o-Sa96esffbatppW9KGq2G571Q&_nc_ohc=3M0vA0VjTFMQ7kNvwECj6eQ&_nc_oc=AdqVIsK2avZqniFEtilPrD05uTH69npbk08X8QtpcUQMtSWAP0FltB9bAnZ9vKz7twI&_nc_zt=23&_nc_ht=scontent.fmnl17-4.fna&_nc_gid=l7nsTP4KXE3MlXsijabWeg&_nc_ss=7b2a8&oh=00_AQT3QOjlbBMkWsZ-HGVtEAOjWbQGt1kjaKo1lxTn4OS1AQ&oe=6AE8DCE6',
+            'sports' => 'assets/images/sportfest.jpg',
             'hackathon' => 'https://www.paterostechnologicalcollege.edu.ph/ASSETS/IMAGES/IICT/IICT6.jpg',
         ];
 
@@ -57,6 +57,19 @@ $event = null;
 $registeredCount = 0;
 $loadError = false;
 
+$currentUser = current_user();
+
+$currentUserId = (int) ($currentUser['id'] ?? 0);
+
+$isStudent = (
+    $currentUserId > 0 &&
+    strtolower(trim((string)($currentUser['role'] ?? ''))) === 'student'
+);
+
+$studentRegistrationStatus = '';
+$studentRegistrationId = 0;
+$studentWaitingStatus = '';
+
 if (!$eventId || $eventId < 1) {
     http_response_code(404);
 } else {
@@ -93,13 +106,66 @@ if (!$eventId || $eventId < 1) {
 
         if (!$event) {
             http_response_code(404);
-        } else {
-            $registeredCount = max(
-                0,
-                (int)($event['registered_count'] ?? 0)
+ } else {
+    $registeredCount = max(
+        0,
+        (int)($event['registered_count'] ?? 0)
+    );
+
+    $pageTitle = (string)$event['title'] . ' | Event Details';
+
+    /*
+    |--------------------------------------------------------------------------
+    | Check logged-in student's registration status
+    |--------------------------------------------------------------------------
+    */
+
+    if ($isStudent) {
+
+        // Check existing registration.
+        $studentRegStmt = $pdo->prepare("
+            SELECT id, status
+            FROM registrations
+            WHERE event_id = ?
+              AND user_id = ?
+            ORDER BY id DESC
+            LIMIT 1
+        ");
+
+        $studentRegStmt->execute([
+            (int)$event['id'],
+            $currentUserId
+        ]);
+
+        $studentRegistration = $studentRegStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($studentRegistration) {
+            $studentRegistrationId = (int)$studentRegistration['id'];
+
+            $studentRegistrationStatus = strtolower(
+                trim((string)$studentRegistration['status'])
             );
-            $pageTitle = (string)$event['title'] . ' | Event Details';
         }
+
+        // Check waiting-list status.
+        $studentWaitingStmt = $pdo->prepare("
+            SELECT status
+            FROM event_waiting_list
+            WHERE event_id = ?
+              AND user_id = ?
+            LIMIT 1
+        ");
+
+        $studentWaitingStmt->execute([
+            (int)$event['id'],
+            $currentUserId
+        ]);
+
+        $studentWaitingStatus = strtolower(
+            trim((string)($studentWaitingStmt->fetchColumn() ?: ''))
+        );
+    }
+}
     } catch (PDOException $ex) {
         error_log('Event Details Error: ' . $ex->getMessage());
         $loadError = true;
@@ -779,7 +845,7 @@ require_once __DIR__ . '/includes/header.php';
                 && date('Y-m-d', $dateTimestamp) < date('Y-m-d');
 
             $eventStatus = strtolower((string)($event['status'] ?? ''));
-            $isUnavailable = $isFull || $isPast || $eventStatus !== 'upcoming';
+            $isUnavailable = $isPast || $eventStatus !== 'upcoming';
 
             $imageUrl = event_detail_image($event);
             $safeImageUrl = htmlspecialchars(
@@ -939,23 +1005,62 @@ require_once __DIR__ . '/includes/header.php';
 
                     <?php if ($isUnavailable): ?>
 
-                        <span class="register-button is-disabled">
-                            <?= $isFull ? 'Event is Full' : ($isPast ? 'Event has Ended' : 'Registration Unavailable') ?>
-                        </span>
+    <span class="register-button is-disabled">
+        <?= $isPast
+            ? 'Event has Ended'
+            : 'Registration Unavailable' ?>
+    </span>
 
-                    <?php else: ?>
+<?php elseif ($isStudent && $studentRegistrationStatus === 'registered'): ?>
 
-                        <!-- Keep this URL aligned with your existing registration handler. -->
-                        <a
-                            class="register-button"
-                            href="<?= e($basePath) ?>register-event.php?id=<?= (int)$event['id'] ?>"
-                        >
-                            <span aria-hidden="true">♙</span>
-                            Register for event
-                            <span aria-hidden="true">→</span>
-                        </a>
+    <a
+        class="register-button"
+        href="<?= e($basePath) ?>ticket.php?registration_id=<?= $studentRegistrationId ?>"
+    >
+        ✓ Already Registered - View Ticket →
+    </a>
 
-                    <?php endif; ?>
+<?php elseif ($isStudent && $studentRegistrationStatus === 'attended'): ?>
+
+    <span class="register-button is-disabled">
+        ✓ Attendance Already Recorded
+    </span>
+
+<?php elseif ($isStudent && $studentWaitingStatus === 'waiting'): ?>
+
+    <span class="register-button is-disabled">
+        ⏳ Already on Waiting List
+    </span>
+
+<?php elseif ($isFull && $isStudent): ?>
+
+    <a
+        class="register-button"
+        href="<?= e($basePath) ?>register-event.php?id=<?= (int)$event['id'] ?>"
+    >
+        <span aria-hidden="true">⏳</span>
+        Join Waiting List
+        <span aria-hidden="true">→</span>
+    </a>
+
+<?php elseif ($isFull): ?>
+
+    <span class="register-button is-disabled">
+        Event is Full
+    </span>
+
+<?php else: ?>
+
+    <a
+        class="register-button"
+        href="<?= e($basePath) ?>register-event.php?id=<?= (int)$event['id'] ?>"
+    >
+        <span aria-hidden="true">♙</span>
+        Register for Event
+        <span aria-hidden="true">→</span>
+    </a>
+
+<?php endif; ?>
 
                     <div class="registration-footnote">
                         <span aria-hidden="true">ⓘ</span>

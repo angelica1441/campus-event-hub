@@ -44,8 +44,13 @@ if (!function_exists('cehNavActive')) {
     }
 }
 
+/* =====================================
+   PAGE URLS
+===================================== */
+
 $homeUrl = $basePath . 'index.php';
 $eventsUrl = $basePath . 'events.php';
+$calendarUrl = $basePath . 'calendar.php';
 $loginUrl = $basePath . 'login.php';
 $registerUrl = $basePath . 'register.php';
 
@@ -53,7 +58,13 @@ $dashboardUrl = $basePath . 'admin/dashboard.php';
 $historyUrl = $basePath . 'admin/event-history.php';
 $adminEventsUrl = $basePath . 'admin/manage-events.php';
 $adminRegistrationsUrl = $basePath . 'admin/registrations.php';
+$studentVerificationsUrl = $basePath . 'admin/student-verifications.php';
+
+$studentProfileUrl = $basePath . 'student/profile.php';
+$studentVerificationUrl = $basePath . 'student-verification.php';
+$studentAttendanceUrl = $basePath . 'student/attendance-history.php';
 $studentRegistrationsUrl = $basePath . 'my-registrations.php';
+
 $logoutUrl = $basePath . 'logout.php';
 
 $ptcLogoUrl = 'https://paterostechnologicalcollege.edu.ph/ASSETS/IMAGES/LOGO/logo-ptc.png';
@@ -62,6 +73,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -69,25 +81,24 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
     <title><?= e($pageTitle ?? 'Campus Event Hub | PTC') ?></title>
 
     <meta name="description"
-          content="Discover campus events, participate in activities, and connect with the Pateros Technological College community.">
+        content="Discover campus events, participate in activities, and connect with the Pateros Technological College community.">
 
     <meta name="theme-color" content="#071d18">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+        rel="stylesheet">
 
     <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <link rel="stylesheet"
-          href="/campus-event-hub/assets/css/style.css">
+        href="/campus-event-hub/assets/css/style.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet">
+        rel="stylesheet">
 
     <style>
         :root {
@@ -138,27 +149,19 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             white-space: nowrap;
         }
 
-        /* =====================================
-           SIDEBAR
-        ===================================== */
+        /* SIDEBAR */
 
         .app-sidebar {
             position: fixed;
             inset: 0 auto 0 0;
             z-index: 1045;
-
             display: flex;
             flex-direction: column;
-
             width: var(--ptc-sidebar-width);
-
             overflow-x: hidden;
             overflow-y: auto;
-
             padding: 22px 16px 17px;
-
             border-right: 1px solid var(--ptc-border);
-
             background:
                 radial-gradient(
                     ellipse at 0% 100%,
@@ -166,16 +169,12 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
                     transparent 42%
                 ),
                 linear-gradient(180deg, #0b3026 0%, #071e18 100%);
-
             box-shadow: 10px 0 35px rgba(0, 0, 0, .17);
-
             scrollbar-width: thin;
             scrollbar-color: #285d46 transparent;
         }
 
-        /* =====================================
-           CENTERED PTC LOGO AND BRAND
-        ===================================== */
+        /* BRAND */
 
         .sidebar-brand {
             display: flex;
@@ -183,14 +182,10 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             align-items: center;
             justify-content: center;
             gap: 14px;
-
             width: 100%;
             min-width: 0;
-
             padding: 8px 4px 25px;
-
             border-bottom: 1px solid var(--ptc-border);
-
             color: #fff;
             text-align: center;
             text-decoration: none;
@@ -198,42 +193,29 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .sidebar-logo {
             position: relative;
-
             display: flex;
             flex: 0 0 auto;
             align-items: center;
             justify-content: center;
-
             width: 150px;
             height: 150px;
-
             padding: 0;
             margin: 0 auto;
-
             overflow: hidden;
-
             border: 3px solid var(--ptc-lime);
             border-radius: 50%;
-
             background: #fff;
-
             box-shadow:
                 0 0 0 5px rgba(210, 248, 155, .08),
                 0 10px 30px rgba(0, 0, 0, .32),
                 0 0 28px rgba(86, 239, 168, .15);
-
             text-decoration: none;
-
-            transition:
-                transform .25s ease,
-                border-color .25s ease,
-                box-shadow .25s ease;
+            transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
         }
 
         .sidebar-logo:hover {
             transform: scale(1.04);
             border-color: var(--ptc-green-bright);
-
             box-shadow:
                 0 0 0 6px rgba(86, 239, 168, .10),
                 0 12px 32px rgba(0, 0, 0, .35),
@@ -242,19 +224,14 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .sidebar-logo img {
             display: block;
-
             width: 100%;
             height: 100%;
-
             max-width: none;
             max-height: none;
-
             padding: 0;
             margin: 0;
-
             border: 0;
             border-radius: 50%;
-
             object-fit: cover;
             object-position: center;
         }
@@ -262,10 +239,8 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
         .sidebar-brand-copy {
             display: block;
             flex: 0 0 auto;
-
             width: 100%;
             min-width: 0;
-
             color: #fff;
             text-align: center;
             text-decoration: none;
@@ -273,9 +248,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .sidebar-brand-copy strong {
             display: block;
-
             color: #fff;
-
             font-family: 'Outfit', sans-serif;
             font-size: 18px;
             font-weight: 800;
@@ -285,25 +258,18 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .sidebar-brand-copy small {
             display: block;
-
             margin-top: 7px;
-
             color: var(--ptc-lime);
-
             font-size: 10px;
             font-weight: 800;
             letter-spacing: 1.3px;
         }
 
-        /* =====================================
-           SIDEBAR NAVIGATION
-        ===================================== */
+        /* NAVIGATION */
 
         .sidebar-section-label {
             margin: 25px 10px 10px;
-
             color: #80ad94;
-
             font-size: 10px;
             font-weight: 800;
             letter-spacing: 1.7px;
@@ -314,10 +280,8 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             display: flex;
             flex-direction: column;
             gap: 6px;
-
             margin: 0;
             padding: 0;
-
             list-style: none;
         }
 
@@ -327,33 +291,22 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .sidebar-link {
             position: relative;
-
             display: flex;
             align-items: center;
             gap: 12px;
-
             width: 100%;
             min-height: 47px;
-
             padding: 11px 13px;
-
             border: 1px solid transparent;
             border-radius: 12px;
-
             background: transparent;
             color: #c2d9cc;
-
             font-family: 'DM Sans', sans-serif;
             font-size: 13px;
             font-weight: 700;
             text-align: left;
             text-decoration: none;
-
-            transition:
-                background .2s ease,
-                color .2s ease,
-                border-color .2s ease,
-                transform .2s ease;
+            transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
         }
 
         .sidebar-link i {
@@ -361,21 +314,16 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             flex: 0 0 22px;
             align-items: center;
             justify-content: center;
-
             width: 22px;
-
             color: #9dc5ad;
             font-size: 18px;
-
             transition: color .2s ease, transform .2s ease;
         }
 
         .sidebar-link:hover {
             transform: translateX(2px);
-
             border-color: rgba(180, 239, 198, .12);
             background: rgba(255, 255, 255, .045);
-
             color: #fff;
         }
 
@@ -386,16 +334,13 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .sidebar-link.active {
             border-color: rgba(86, 239, 168, .23);
-
             background:
                 linear-gradient(
                     110deg,
                     rgba(35, 177, 117, .25),
                     rgba(23, 105, 72, .19)
                 );
-
             color: #fff;
-
             box-shadow:
                 inset 3px 0 0 var(--ptc-green-bright),
                 0 5px 18px rgba(0, 0, 0, .08);
@@ -407,91 +352,59 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .sidebar-divider {
             flex: 0 0 auto;
-
             height: 1px;
             margin: 18px 7px 16px;
-
             background: var(--ptc-border);
         }
 
-        /* =====================================
-           FIGHTING DUCKS CARD
-        ===================================== */
+        /* FIGHTING DUCKS */
 
         .fighting-ducks-card {
             position: relative;
             isolation: isolate;
             flex: 0 0 auto;
-
             margin-top: 0;
             padding: 16px 14px 14px;
-
             overflow: hidden;
-
             border: 1px solid rgba(190, 238, 174, .2);
             border-radius: 18px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(22, 75, 53, .97),
-                    rgba(7, 35, 27, .99)
-                );
-
+            background: linear-gradient(145deg, rgba(22, 75, 53, .97), rgba(7, 35, 27, .99));
             box-shadow: 0 12px 28px rgba(0, 0, 0, .14);
         }
 
         .ducks-glow {
             position: absolute;
             z-index: -1;
-
             top: -65px;
             right: -55px;
-
             width: 155px;
             height: 155px;
-
             border-radius: 50%;
             background: rgba(192, 245, 134, .13);
             filter: blur(35px);
-
             pointer-events: none;
         }
 
         .ducks-image-wrap {
             position: relative;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             min-height: 112px;
             margin: -2px -3px 10px;
-
             overflow: hidden;
-
             border: 1px solid rgba(210, 248, 155, .12);
             border-radius: 13px;
-
-            background:
-                radial-gradient(
-                    ellipse at center,
-                    rgba(210, 248, 155, .09),
-                    rgba(3, 22, 16, .18)
-                );
+            background: radial-gradient(ellipse at center, rgba(210, 248, 155, .09), rgba(3, 22, 16, .18));
         }
 
         .fighting-ducks-image {
             display: block;
-
             width: 100%;
             height: 112px;
-
             object-fit: contain;
             object-position: center;
-
             padding: 5px;
-
             filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .22));
         }
 
@@ -504,9 +417,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .ducks-tag {
             margin-bottom: 6px;
-
             color: var(--ptc-lime);
-
             font-size: 9px;
             font-weight: 800;
             letter-spacing: 1.8px;
@@ -514,9 +425,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .fighting-ducks-card h3 {
             margin: 0;
-
             color: #f3fff7;
-
             font-family: 'Outfit', sans-serif;
             font-size: 25px;
             font-weight: 800;
@@ -526,9 +435,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .fighting-ducks-card p {
             margin: 10px 0 0;
-
             color: #c4dfce;
-
             font-size: 11px;
             line-height: 1.65;
         }
@@ -537,9 +444,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             display: flex;
             align-items: center;
             gap: 9px;
-
             margin-top: 14px;
-
             color: var(--ptc-lime);
             font-size: 13px;
         }
@@ -550,19 +455,14 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             background: rgba(210, 248, 155, .25);
         }
 
-        /* =====================================
-           COLLEGE INFORMATION CARD
-        ===================================== */
+        /* COLLEGE INFORMATION */
 
         .sidebar-campus-card {
             flex: 0 0 auto;
-
             margin-top: 12px;
             padding: 13px 12px;
-
             border: 1px solid var(--ptc-border);
             border-radius: 14px;
-
             background: rgba(255, 255, 255, .025);
         }
 
@@ -570,26 +470,19 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             display: inline-flex;
             align-items: center;
             justify-content: center;
-
             width: 34px;
             height: 34px;
-
             border: 1px solid rgba(210, 248, 155, .16);
             border-radius: 11px;
-
             background: rgba(210, 248, 155, .07);
             color: var(--ptc-lime);
-
             font-size: 17px;
         }
 
         .sidebar-campus-card strong {
             display: block;
-
             margin-top: 9px;
-
             color: #f1fff5;
-
             font-family: 'Outfit', sans-serif;
             font-size: 12px;
             font-weight: 700;
@@ -598,16 +491,12 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .sidebar-campus-card p {
             margin: 5px 0 0;
-
             color: var(--ptc-muted);
-
             font-size: 11px;
             line-height: 1.6;
         }
 
-        /* =====================================
-           LOGOUT
-        ===================================== */
+        /* LOGOUT */
 
         .sidebar-bottom {
             flex: 0 0 auto;
@@ -633,29 +522,21 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             color: #fff;
         }
 
-        /* =====================================
-           TOPBAR
-        ===================================== */
+        /* TOPBAR */
 
         .app-topbar {
             position: sticky;
             top: 0;
             z-index: 1035;
-
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 15px;
-
             min-height: 76px;
-
             margin-left: var(--ptc-sidebar-width);
             padding: 12px 30px;
-
             border-bottom: 1px solid var(--ptc-border);
-
             background: rgba(7, 29, 24, .91);
-
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
         }
@@ -670,19 +551,14 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .mobile-menu-button {
             display: none;
-
             align-items: center;
             justify-content: center;
-
             width: 42px;
             height: 42px;
-
             border: 1px solid var(--ptc-border);
             border-radius: 12px;
-
             background: var(--ptc-panel);
             color: var(--ptc-lime);
-
             cursor: pointer;
         }
 
@@ -692,9 +568,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .topbar-heading strong {
             display: block;
-
             color: #f4fff7;
-
             font-family: 'Outfit', sans-serif;
             font-size: 15px;
             font-weight: 800;
@@ -704,7 +578,6 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
         .topbar-heading small {
             display: block;
             margin-top: 3px;
-
             color: var(--ptc-muted);
             font-size: 11px;
         }
@@ -713,15 +586,11 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             display: inline-flex;
             align-items: center;
             gap: 8px;
-
             padding: 9px 12px;
-
             border: 1px solid var(--ptc-border);
             border-radius: 50px;
-
             background: rgba(20, 67, 49, .42);
             color: #c9ead5;
-
             font-size: 11px;
             font-weight: 700;
         }
@@ -729,16 +598,12 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
         .status-dot {
             width: 7px;
             height: 7px;
-
             border-radius: 50%;
-
             background: #57e7a2;
             box-shadow: 0 0 9px rgba(87, 231, 162, .6);
         }
 
-        /* =====================================
-           ACCOUNT DROPDOWN
-        ===================================== */
+        /* ACCOUNT DROPDOWN */
 
         .role-selector {
             position: relative;
@@ -748,16 +613,12 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             display: flex;
             align-items: center;
             gap: 10px;
-
             min-height: 46px;
             padding: 6px 11px 6px 7px;
-
             border: 1px solid rgba(159, 220, 180, .2);
             border-radius: 13px;
-
             background: linear-gradient(135deg, #123e31, #0b2d24);
             color: #fff;
-
             cursor: pointer;
             list-style: none;
         }
@@ -776,16 +637,12 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             flex: 0 0 34px;
             align-items: center;
             justify-content: center;
-
             width: 34px;
             height: 34px;
-
             border: 1px solid rgba(197, 245, 138, .24);
             border-radius: 11px;
-
             background: linear-gradient(135deg, #29bb83, #116c4c);
             color: #fff;
-
             font-size: 13px;
             font-weight: 800;
         }
@@ -796,14 +653,11 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
         .account-copy strong {
             display: block;
-
             max-width: 145px;
             overflow: hidden;
-
             color: #fff;
             font-size: 12px;
             font-weight: 800;
-
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -811,7 +665,6 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
         .account-copy small {
             display: block;
             margin-top: 3px;
-
             color: var(--ptc-lime);
             font-size: 10px;
             text-transform: capitalize;
@@ -827,22 +680,17 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             top: calc(100% + 10px);
             right: 0;
             z-index: 1100;
-
             width: 245px;
             padding: 9px;
-
             border: 1px solid var(--ptc-border);
             border-radius: 16px;
-
             background: #0b2b23;
             box-shadow: 0 18px 45px rgba(0, 0, 0, .38);
         }
 
         .role-dropdown-title {
             padding: 9px 10px 11px;
-
             color: #83ad95;
-
             font-size: 10px;
             font-weight: 800;
             letter-spacing: 1.4px;
@@ -853,12 +701,9 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             display: flex;
             align-items: center;
             gap: 11px;
-
             padding: 11px 10px;
-
             border: 1px solid transparent;
             border-radius: 11px;
-
             color: #e7f7ec;
             text-decoration: none;
         }
@@ -874,15 +719,11 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             flex: 0 0 35px;
             align-items: center;
             justify-content: center;
-
             width: 35px;
             height: 35px;
-
             border-radius: 11px;
-
             background: rgba(197, 245, 138, .1);
             color: var(--ptc-lime);
-
             font-size: 17px;
         }
 
@@ -894,21 +735,16 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
         .role-option small {
             display: block;
             margin-top: 3px;
-
             color: var(--ptc-muted);
             font-size: 10px;
         }
 
-        /* =====================================
-           MAIN CONTENT
-        ===================================== */
+        /* MAIN CONTENT */
 
         .app-main {
             min-height: calc(100vh - 76px);
-
             margin-left: var(--ptc-sidebar-width);
             padding: 27px 30px 42px;
-
             color: var(--ptc-text);
         }
 
@@ -951,9 +787,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             display: none;
         }
 
-        /* =====================================
-           TABLET
-        ===================================== */
+        /* TABLET */
 
         @media (max-width: 1100px) {
             :root {
@@ -985,16 +819,12 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             }
         }
 
-        /* =====================================
-           MOBILE
-        ===================================== */
+        /* MOBILE */
 
         @media (max-width: 767.98px) {
             .app-sidebar {
                 width: min(300px, 86vw);
-
                 padding: 20px 15px 18px;
-
                 transform: translateX(-105%);
                 transition: transform .28s ease;
             }
@@ -1021,14 +851,10 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
                 position: fixed;
                 inset: 0;
                 z-index: 1040;
-
                 display: block;
-
                 background: rgba(0, 0, 0, .65);
-
                 opacity: 0;
                 pointer-events: none;
-
                 transition: opacity .25s ease;
             }
 
@@ -1039,7 +865,6 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
             .app-topbar {
                 min-height: 67px;
-
                 margin-left: 0;
                 padding: 10px 13px;
             }
@@ -1047,7 +872,6 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             .mobile-menu-button {
                 display: inline-flex;
                 flex: 0 0 40px;
-
                 width: 40px;
                 height: 40px;
             }
@@ -1089,13 +913,11 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
                 position: fixed;
                 top: 62px;
                 right: 10px;
-
                 width: min(270px, calc(100vw - 20px));
             }
 
             .app-main {
                 min-height: calc(100vh - 67px);
-
                 margin-left: 0;
                 padding: 19px 13px 30px;
             }
@@ -1143,7 +965,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
     </style>
 </head>
 
-<body>
+<body class="<?= ($role === 'admin' && $currentPage === 'dashboard.php') ? 'admin-home-page' : '' ?>">
 
 <input
     type="checkbox"
@@ -1151,13 +973,11 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
     aria-label="Toggle navigation menu"
 >
 
-<!-- =====================================
-     SIDEBAR
-===================================== -->
+<!-- SIDEBAR -->
 
 <aside class="app-sidebar">
 
-    <!-- CENTERED PTC LOGO -->
+    <!-- PTC BRAND -->
     <div class="sidebar-brand">
 
         <a
@@ -1227,6 +1047,16 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
             <li>
                 <a
+                    class="sidebar-link<?= cehNavActive(['student-verifications.php'], $currentPage) ?>"
+                    href="<?= e($studentVerificationsUrl) ?>"
+                >
+                    <i class="bi bi-person-vcard-fill"></i>
+                    <span>Student Verifications</span>
+                </a>
+            </li>
+
+            <li>
+                <a
                     class="sidebar-link<?= cehNavActive(['event-history.php'], $currentPage) ?>"
                     href="<?= e($historyUrl) ?>"
                 >
@@ -1245,12 +1075,22 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
                 </a>
             </li>
 
+            <li>
+                <a
+                    class="sidebar-link<?= cehNavActive(['calendar.php'], $currentPage) ?>"
+                    href="<?= e($calendarUrl) ?>"
+                >
+                    <i class="bi bi-calendar3"></i>
+                    <span>Event Calendar</span>
+                </a>
+            </li>
+
         </ul>
 
     <!-- STUDENT NAVIGATION -->
     <?php elseif ($role === 'student'): ?>
 
-        <div class="sidebar-section-label">Student Portal</div>
+        <div class="sidebar-section-label">Main Menu</div>
 
         <ul class="sidebar-menu">
 
@@ -1276,11 +1116,63 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
             <li>
                 <a
+                    class="sidebar-link<?= cehNavActive(['calendar.php'], $currentPage) ?>"
+                    href="<?= e($calendarUrl) ?>"
+                >
+                    <i class="bi bi-calendar3"></i>
+                    <span>Event Calendar</span>
+                </a>
+            </li>
+
+        </ul>
+
+        <div class="sidebar-section-label">My Activities</div>
+
+        <ul class="sidebar-menu">
+
+            <li>
+                <a
                     class="sidebar-link<?= cehNavActive(['my-registrations.php'], $currentPage) ?>"
                     href="<?= e($studentRegistrationsUrl) ?>"
                 >
                     <i class="bi bi-ticket-perforated-fill"></i>
                     <span>My Registrations</span>
+                </a>
+            </li>
+
+            <li>
+                <a
+                    class="sidebar-link<?= cehNavActive(['attendance-history.php'], $currentPage) ?>"
+                    href="<?= e($studentAttendanceUrl) ?>"
+                >
+                    <i class="bi bi-calendar2-check-fill"></i>
+                    <span>Attendance History</span>
+                </a>
+            </li>
+
+        </ul>
+
+        <div class="sidebar-section-label">My Account</div>
+
+        <ul class="sidebar-menu">
+
+            <li>
+                <a
+                    class="sidebar-link<?= cehNavActive(['student-verification.php'], $currentPage) ?>"
+                    href="<?= e($studentVerificationUrl) ?>"
+                >
+                    <i class="bi bi-person-vcard-fill"></i>
+                    <span>Student Verification</span>
+                </a>
+            </li>
+
+            <li>
+                <a
+                    class="sidebar-link<?= cehNavActive(['profile.php', 'change-password.php', 'registration-history.php'], $currentPage) ?>"
+                    href="<?= e($studentProfileUrl) ?>"
+                >
+                    <i class="bi bi-person-circle"></i>
+                    <span>My Profile</span>
                 </a>
             </li>
 
@@ -1315,6 +1207,16 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
             <li>
                 <a
+                    class="sidebar-link<?= cehNavActive(['calendar.php'], $currentPage) ?>"
+                    href="<?= e($calendarUrl) ?>"
+                >
+                    <i class="bi bi-calendar3"></i>
+                    <span>Event Calendar</span>
+                </a>
+            </li>
+
+            <li>
+                <a
                     class="sidebar-link<?= cehNavActive(['login.php'], $currentPage) ?>"
                     href="<?= e($loginUrl) ?>"
                 >
@@ -1340,10 +1242,8 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
     <div class="sidebar-divider"></div>
 
     <!-- FIGHTING DUCKS -->
-    <section
-        class="fighting-ducks-card"
-        aria-label="PTC Fighting Ducks campus spirit"
-    >
+    <section class="fighting-ducks-card" aria-label="PTC Fighting Ducks campus spirit">
+
         <div class="ducks-glow"></div>
 
         <div class="ducks-image-wrap">
@@ -1372,6 +1272,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
             <i class="bi bi-stars"></i>
             <span></span>
         </div>
+
     </section>
 
     <!-- COLLEGE INFORMATION -->
@@ -1422,9 +1323,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
     aria-label="Close navigation menu"
 ></label>
 
-<!-- =====================================
-     TOPBAR
-===================================== -->
+<!-- TOPBAR -->
 
 <header class="app-topbar">
 
@@ -1542,10 +1441,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
                 <?php else: ?>
 
-                    <a
-                        class="role-option"
-                        href="<?= e($loginUrl) ?>"
-                    >
+                    <a class="role-option" href="<?= e($loginUrl) ?>">
 
                         <i class="bi bi-box-arrow-in-right"></i>
 
@@ -1556,10 +1452,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
                     </a>
 
-                    <a
-                        class="role-option"
-                        href="<?= e($registerUrl) ?>"
-                    >
+                    <a class="role-option" href="<?= e($registerUrl) ?>">
 
                         <i class="bi bi-person-plus-fill"></i>
 
@@ -1580,9 +1473,7 @@ $localLogoUrl = $basePath . 'assets/images/logo-ptc.png';
 
 </header>
 
-<!-- =====================================
-     MAIN CONTENT WRAPPER
-===================================== -->
+<!-- MAIN CONTENT WRAPPER -->
 
 <main class="app-main">
 

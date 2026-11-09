@@ -1145,15 +1145,19 @@ require_once __DIR__ . '/../includes/header.php';
                     <p>Manage event details, check attendees, and update event status.</p>
                 </div>
 
-                <div class="panel-actions">
-                    <a class="btn-dashboard btn-dashboard-primary" href="add-event.php">
-                        ＋ Create Event
-                    </a>
+         <div class="panel-actions">
+    <a class="btn-dashboard btn-dashboard-primary" href="add-event.php">
+        ＋ Create Event
+    </a>
 
-                    <a class="btn-dashboard btn-dashboard-secondary" href="event-history.php">
-                        Event History ↗
-                    </a>
-                </div>
+    <a class="btn-dashboard btn-dashboard-secondary" href="attendance-scanner.php">
+        Attendance Monitoring ↗
+    </a>
+
+    <a class="btn-dashboard btn-dashboard-secondary" href="event-history.php">
+        Event History ↗
+    </a>
+</div>
             </div>
 
             <div class="event-toolbar">
